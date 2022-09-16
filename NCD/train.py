@@ -16,7 +16,7 @@ from torch.autograd import Variable
 from dataset_utility import dataset, ToTensor
 from ncd import NCD
 
-main_path = ''
+dataset_path = ''
 save_path_model = '' 
 save_path_log = ''
 
@@ -33,7 +33,7 @@ parser.add_argument('--num_neg', type=int, default=4)
 parser.add_argument('--fig_type', type=str, default='*') 
 parser.add_argument('--dataset', type=str, default='pgm')
 parser.add_argument('--root', type=str, default='../dataset/rpm')
-parser.add_argument('--moja_putanja', type=str, default= main_path)
+parser.add_argument('--moja_putanja', type=str, default= dataset_path)
 
 #parser.add_argument('--fig_type', type=str, default='neutral')   # neutral, interpolation, extrapolation
 #parser.add_argument('--dataset', type=str, default='pgm')
@@ -41,7 +41,7 @@ parser.add_argument('--moja_putanja', type=str, default= main_path)
 
 parser.add_argument('--train_mode', type=bool, default=True)
 parser.add_argument('--lr', type=float, default=2e-4)
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--img_size', type=int, default=256)
 parser.add_argument('--workers', type=int, default=1)
@@ -92,6 +92,7 @@ if torch.cuda.device_count() > 0:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = torch.nn.DataParallel(model)    
 model.to(device)    
+
 model.load_state_dict(torch.load(save_path_model+'/model_01.pth'))    
 
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
@@ -203,7 +204,7 @@ def test(epoch):
 
 
 if __name__ == '__main__':
-    for epoch in range(1, args.epochs+1):      
+    for epoch in range(2, args.epochs+1):      
 
         #metrics_test = test(epoch)
         #break
