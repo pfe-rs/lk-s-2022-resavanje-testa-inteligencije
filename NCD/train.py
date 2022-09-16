@@ -1,3 +1,4 @@
+from importlib.metadata import requires
 import os
 from zipfile import BadZipFile
 import torch
@@ -61,11 +62,13 @@ tf = transforms.Compose([ToTensor()])
 
 train_set = dataset(args.moja_putanja, 'train', args.fig_type, args.img_size, tf, args.train_mode)
 test_set = dataset(args.moja_putanja, 'test', args.fig_type, args.img_size, tf)
+val_set = dataset(args.moja_putanja, 'val',args.fig_type, args.img_size, tf)
 
 print ('test length', len(test_set), args.fig_type)
 
 train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
 test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, pin_memory=True)
+val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
 
 save_name = args.model_name + '_' + args.fig_type + '_' + str(args.num_neg) + '_' + str(args.img_size) + '_' + str(args.batch_size)
 
@@ -137,6 +140,27 @@ def train(epoch):
                
         if batch_idx > 1 and batch_idx % 12000 == 0:
             print ('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
+            model.eval()
+            metrics = {'correct': [], 'count': []}
+            val_loader_iter = iter(val_loader)
+            for i in range (500):
+                image, target = next(val_loader)
+                image = Variable(image, requires_grad = False).to(device)
+                target = Variable(target, requires_grad = False).to(device)
+
+                with torch.no_grad():
+                    predict = model(image)
+                
+                pred = torch.max(predict[:, 2:], 1)[1]
+                correct = pred.eq(target.data).cpu().sum().numpy()
+
+                metrics['correct'].append(correct)
+                metrics['count'].append(target.size(0))
+
+                accuracy = 100* np.sum(metrics['correct']) / np.sum(metrics['count'])
+            
+            print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))
+            return metrics
         
     
     print ('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
