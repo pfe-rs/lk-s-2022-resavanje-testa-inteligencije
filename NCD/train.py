@@ -93,7 +93,7 @@ if torch.cuda.device_count() > 0:
     model = torch.nn.DataParallel(model)    
 model.to(device)    
 
-model.load_state_dict(torch.load(save_path_model+'/model_01.pth'))    
+#model.load_state_dict(torch.load(save_path_model+'/model_01.pth'))    
 
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
 
@@ -105,7 +105,7 @@ with open(save_log_name, 'a') as f:
 f.close() 
 
 
-def replace_ans(x, k=8):    
+def replace_ans(x, k=4):    
     if k > 0:
         x1 = x[:, 0:16-k]
         x2 = x[:, 16-k:]
@@ -149,10 +149,10 @@ def train(epoch):
         if batch_idx > 1 and batch_idx % 12000 == 0:
             print ('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
             model.eval()
-            metrics = {'correct': [], 'count': []}
+            metricsa = {'correct': [], 'count': []}
             val_loader_iter = iter(val_loader)
             for i in range (500):
-                image, target = next(val_loader)
+                image, target = next(val_loader_iter)
                 image = Variable(image, requires_grad = False).to(device)
                 target = Variable(target, requires_grad = False).to(device)
 
@@ -162,13 +162,13 @@ def train(epoch):
                 pred = torch.max(predict[:, 2:], 1)[1]
                 correct = pred.eq(target.data).cpu().sum().numpy()
 
-                metrics['correct'].append(correct)
-                metrics['count'].append(target.size(0))
+                metricsa['correct'].append(correct)
+                metricsa['count'].append(target.size(0))
 
-                accuracy = 100* np.sum(metrics['correct']) / np.sum(metrics['count'])
+                accuracy = 100* np.sum(metricsa['correct']) / np.sum(metricsa['count'])
             
             print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))
-            return metrics
+            
         
     
     print ('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
@@ -204,7 +204,7 @@ def test(epoch):
 
 
 if __name__ == '__main__':
-    for epoch in range(2, args.epochs+1):      
+    for epoch in range(1, args.epochs+1):      
 
         #metrics_test = test(epoch)
         #break
