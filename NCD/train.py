@@ -16,6 +16,13 @@ from torch.autograd import Variable
 from dataset_utility import dataset, ToTensor
 from ncd import NCD
 
+main_path = ''
+save_path_model = '' 
+save_path_log = ''
+
+
+
+
 os.environ['CUDA_VISIBLE_DEVICES'] ='0, 1'
 torch.backends.cudnn.benchmark = True
 
@@ -26,7 +33,7 @@ parser.add_argument('--num_neg', type=int, default=4)
 parser.add_argument('--fig_type', type=str, default='*') 
 parser.add_argument('--dataset', type=str, default='pgm')
 parser.add_argument('--root', type=str, default='../dataset/rpm')
-parser.add_argument('--moja_putanja', type=str, default='D:\\AI VS IQ TEST\\testovi')
+parser.add_argument('--moja_putanja', type=str, default= main_path)
 
 #parser.add_argument('--fig_type', type=str, default='neutral')   # neutral, interpolation, extrapolation
 #parser.add_argument('--dataset', type=str, default='pgm')
@@ -72,11 +79,11 @@ val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, num_w
 
 save_name = args.model_name + '_' + args.fig_type + '_' + str(args.num_neg) + '_' + str(args.img_size) + '_' + str(args.batch_size)
 
-save_path_model = 'D:\AI VS IQ TEST\`cuva'   
+  
 if not os.path.exists(save_path_model):
-    os.makedirs('D:\AI VS IQ TEST\`cuva')    
+    os.makedirs(save_path_model)    
     
-save_path_log = 'D:\\AI VS IQ TEST\\cuvalogs'
+
 if not os.path.exists(save_path_log):
     os.makedirs(save_path_log)   
     
@@ -85,12 +92,12 @@ if torch.cuda.device_count() > 0:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
     model = torch.nn.DataParallel(model)    
 model.to(device)    
-#model.load_state_dict(torch.load(save_path_model+'/model_06.pth'))    
+model.load_state_dict(torch.load(save_path_model+'/model_01.pth'))    
 
 optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
 
 time_now = datetime.now().strftime('%D-%H:%M:%S')      
-save_log_name = r'D:\AI VS IQ TEST\cuvalogs\sacuvani.txt'
+save_log_name = os.join(save_path_log,'sacuvani.txt' )
 with open(save_log_name, 'a') as f:
     f.write('\n------ lr: {:f}, batch_size: {:d}, img_size: {:d}, time: {:s} ------\n'.format(
         args.lr, args.batch_size, args.img_size, time_now))
