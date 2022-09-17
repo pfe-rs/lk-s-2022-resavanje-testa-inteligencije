@@ -86,35 +86,25 @@ with open(save_log_name, 'a') as f:
         args.lr, args.batch_size, args.img_size, time_now))
 f.close()
 
-
-
-
-
-def compute_loss(predict): #!Cross entropy loss!
-    pseudo_target = torch.zeros(predict.shape)
-    pseudo_target = Variable(pseudo_target, requires_grad=False).to(device)
-    pseudo_target[:, 0:2] = 1
-
-    return Functional.binary_cross_entropy_with_logits(predict, pseudo_target)
-
-
-
+loss_fn = nn.CrossEntropyLoss()
 
 def train(epoch):
     model.train()
-    metrics = {'loss': []}
+    metrics = {'loss': [], 'correct': [], 'count': []}
+    # val_loader_iter = iter(val_loader)
 
     train_loader_iter = iter(train_loader)
+
     for batch_idx in trange(len(train_loader_iter)):
         try:
-            image, _ = next(train_loader_iter)
+            image, target = next(train_loader_iter)
         except BadZipFile:
             continue
 
         image = Variable(image, requires_grad=True).to(device)
 
         predict = model(image)
-        loss = compute_loss(predict)
+        loss = loss_fn(predict, target)
 
         loss.backward()
         optimizer.step()
@@ -122,12 +112,12 @@ def train(epoch):
 
         metrics['loss'].append(loss.item())
 
-        if batch_idx > 1 and batch_idx % 10 == 0:
+        if batch_idx > 1 and batch_idx % 30 == 0:
             print('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
             model.eval()
             metricsa = {'correct': [], 'count': []}
             val_loader_iter = iter(val_loader)
-            """for i in range(500):
+            for i in range(57):
                 image, target = next(val_loader_iter)
                 image = Variable(image, requires_grad=False).to(device)
                 target = Variable(target, requires_grad=False).to(device)
@@ -135,7 +125,7 @@ def train(epoch):
                 with torch.no_grad():
                     predict = model(image)
 
-                pred = torch.max(predict[:, 2:], 1)[1]
+                pred = torch.max(predict[:, :], 1)[1]
                 correct = pred.eq(target.data).cpu().sum().numpy()
 
                 metricsa['correct'].append(correct)
@@ -143,9 +133,18 @@ def train(epoch):
 
                 accuracy = 100 * np.sum(metricsa['correct']) / np.sum(metricsa['count'])
 
-            print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))"""
+            print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))
+            model.train()
 
-    print('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
+    pred = torch.max(predict[:, :], 1)[1]  ###predict[:, 2:]
+    correct = pred.eq(target.data).cpu().sum().numpy()
+
+    metrics['correct'].append(correct)
+    metrics['count'].append(target.size(0))
+    accuracy = 100 * np.sum(metrics['correct']) / np.sum(metrics['count'])
+
+    print('Epoch: {:d}/{:d},  Loss: {:.8f}, Acc: {:.8f}'.format(epoch, args.epochs, np.mean(metrics['loss']),
+                                                                accuracy))  # acc
 
     return metrics
 
@@ -180,24 +179,19 @@ def test(epoch):
 if __name__ == '__main__':
     for epoch in range(1, args.epochs + 1):
 
-        # metrics_test = test(epoch)
-        # break
-
         metrics_train = train(epoch)
-
-        # Save model
         if epoch > 0:
             save_name = os.path.join(save_path_model, 'model_{:02d}.pth'.format(epoch))
             torch.save(model.state_dict(), save_name)
 
-        metrics_test = test(epoch)
+    metrics_test = test(epoch)
 
-        loss_train = np.mean(metrics_train['loss'])
-        acc_test = 100 * np.sum(metrics_test['correct']) / np.sum(metrics_test['count'])
+    loss_train = np.mean(metrics_train['loss'])
+    acc_test = 100 * np.sum(metrics_test['correct']) / np.sum(metrics_test['count'])
 
-        time_now = datetime.now().strftime('%H:%M:%S')
+    time_now = datetime.now().strftime('%H:%M:%S')
 
-        with open(save_log_name, 'a') as f:
-            f.write('Epoch {:02d}: Accuracy: {:.3f}, Loss: {:.3f}, Time: {:s}\n'.format(
-                epoch, acc_test, loss_train, time_now))
-        f.close()
+    with open(save_log_name, 'a') as f:
+        f.write('Epoch {:02d}: Accuracy: {:.3f}, Loss: {:.3f}, Time: {:s}\n'.format(
+            epoch, acc_test, loss_train, time_now))
+    f.close()
