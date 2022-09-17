@@ -168,6 +168,7 @@ def train(epoch):
                 accuracy = 100* np.sum(metricsa['correct']) / np.sum(metricsa['count'])
             
             print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))
+            model.train()
             
         
     
