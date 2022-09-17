@@ -61,7 +61,7 @@ if not os.path.exists(save_path_log):
 model = Wild_Relation_Network()
 if torch.cuda.device_count() > 0:
     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    model = torch.nn.DataParallel(model)
+    
 model.to(device)
 
 # model.load_state_dict(torch.load(save_path_model+'/model_01.pth'))
