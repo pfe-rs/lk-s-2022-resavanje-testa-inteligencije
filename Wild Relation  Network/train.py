@@ -14,18 +14,18 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 from WREN import *
 
-dataset_path = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\neutral'
-save_path_model = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\cuva'
-save_path_log = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\cuvalogs'
+dataset_path = 'D:\\testiranje lmao\\testovi'
+save_path_model = 'D:\\testiranje lmao\`cuva'
+save_path_log = 'D:\\testiranje lmao\cuvalogs'
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
-torch.backends.cudnn.benchmark = True
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 
 num_neg = 4
 fig_type = "*"
 train_mode = True
 learn_rate = 0.0001
-num_epochs = 5
+num_epochs = 2
 batch_size = 16
 img_size = 160
 workers = 1
@@ -78,7 +78,7 @@ with open(save_log_name, 'a') as f:
         learn_rate, batch_size, img_size, time_now))
 f.close()
 
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.CrossEntropyLoss().to(device)
 
 
 def validation_accuracy():
@@ -118,7 +118,9 @@ def train(epoch):
 
         image = Variable(image, requires_grad=True).to(device)
 
+        target = target.to(device)
         predict = model(image)
+
         loss = loss_fn(predict, target)
 
         loss.backward()
