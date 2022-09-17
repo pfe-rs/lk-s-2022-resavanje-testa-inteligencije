@@ -9,7 +9,7 @@ from torchvision import transforms, utils
 
 class ToTensor(object):
     def __call__(self, sample):
-        return torch.tensor(sample, dtype=torch.float32)
+        return torch.tensor(np.array(sample), dtype=torch.float32)
 
 
 class dataset(Dataset):
