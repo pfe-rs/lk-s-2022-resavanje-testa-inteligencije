@@ -14,9 +14,9 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 from WREN import *
 
-dataset_path = ''
-save_path_model = ''
-save_path_log = ''
+dataset_path = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\neutral'
+save_path_model = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\cuva'
+save_path_log = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\cuvalogs'
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
 torch.backends.cudnn.benchmark = True
