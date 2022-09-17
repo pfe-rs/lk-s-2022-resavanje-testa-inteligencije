@@ -80,7 +80,8 @@ optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters(
 
 ###cuvanje logova
 time_now = datetime.now().strftime('%D-%H:%M:%S')
-save_log_name = os.path.join(save_path_log, 'sacuvani.txt')
+save_log_name = os.path.join(save_path_log, 'save_log.txt')
+train_log_name = os.path.join(save_path_log, "train_log.txt")
 with open(save_log_name, 'a') as f:
     f.write('\n------ lr: {:f}, batch_size: {:d}, img_size: {:d}, time: {:s} ------\n'.format(
         args.lr, args.batch_size, args.img_size, time_now))
@@ -88,10 +89,33 @@ f.close()
 
 loss_fn = nn.CrossEntropyLoss()
 
+
+def validation_accuracy():
+    model.eval()
+    iter_val = iter(val_loader)
+    metricsa = {'correct': [], 'count': []}
+    for i in range(len(iter_val)):
+        image, target = next(iter_val)
+        image = Variable(image, requires_grad=False).to(device)
+        target = Variable(target, requires_grad=False).to(device)
+
+        with torch.no_grad():
+            predict = model(image)
+
+        pred = torch.max(predict[:, :], 1)[1]
+        correct = pred.eq(target.data).cpu().sum().numpy()
+
+        metricsa['correct'].append(correct)
+        metricsa['count'].append(target.size(0))
+
+    acc_val = 100 * np.sum(metricsa['correct']) / np.sum(metricsa['count'])
+    model.train()
+    return acc_val
+
+
 def train(epoch):
     model.train()
     metrics = {'loss': [], 'correct': [], 'count': []}
-    # val_loader_iter = iter(val_loader)
 
     train_loader_iter = iter(train_loader)
 
@@ -112,35 +136,27 @@ def train(epoch):
 
         metrics['loss'].append(loss.item())
 
+        pred = torch.max(predict[:, :], 1)[1]  ###predict[:, 2:]
+        correct = pred.eq(target.data).cpu().sum().numpy()
+
+        metrics['correct'].append(correct)
+        metrics['count'].append(target.size(0))
+
         if batch_idx > 1 and batch_idx % 30 == 0:
-            print('Epoch: {:d}/{:d},  Loss: {:.3f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
-            model.eval()
-            metricsa = {'correct': [], 'count': []}
-            val_loader_iter = iter(val_loader)
-            for i in range(57):
-                image, target = next(val_loader_iter)
-                image = Variable(image, requires_grad=False).to(device)
-                target = Variable(target, requires_grad=False).to(device)
+            print('Epoch: {:d}/{:d},  Loss: {:.8f}'.format(epoch, args.epochs, np.mean(metrics['loss'])))
 
-                with torch.no_grad():
-                    predict = model(image)
+            acc_val = validation_accuracy()
+            print(' Validation Accuracy: {:.8f} \n'.format(acc_val))
 
-                pred = torch.max(predict[:, :], 1)[1]
-                correct = pred.eq(target.data).cpu().sum().numpy()
+            acc_train= 100 * np.sum(metrics['correct']) / np.sum(metrics['count'])
 
-                metricsa['correct'].append(correct)
-                metricsa['count'].append(target.size(0))
+            with open(train_log_name, 'a') as f:
+                f.write('Epoch {:02d}: Batch_idx {:d}: Acc_val {:.8f}: Acc_train {:.8f}: Loss {:.8f}: Time {:s}\n'.format(
+                    epoch, batch_idx,  acc_val,acc_train, np.mean(metrics['loss']), time_now))
 
-                accuracy = 100 * np.sum(metricsa['correct']) / np.sum(metricsa['count'])
+            metrics = {'loss': [], 'correct': [], 'count': []}
 
-            print('After 1000 validation test Accuracy: {:.3f} \n'.format(accuracy))
-            model.train()
 
-    pred = torch.max(predict[:, :], 1)[1]  ###predict[:, 2:]
-    correct = pred.eq(target.data).cpu().sum().numpy()
-
-    metrics['correct'].append(correct)
-    metrics['count'].append(target.size(0))
     accuracy = 100 * np.sum(metrics['correct']) / np.sum(metrics['count'])
 
     print('Epoch: {:d}/{:d},  Loss: {:.8f}, Acc: {:.8f}'.format(epoch, args.epochs, np.mean(metrics['loss']),
@@ -150,7 +166,7 @@ def train(epoch):
 
 
 def test(epoch):
-    model.eval()
+    model.eval()Ab
     metrics = {'correct': [], 'count': []}
 
     test_loader_iter = iter(test_loader)
@@ -171,7 +187,7 @@ def test(epoch):
 
         accuracy = 100 * np.sum(metrics['correct']) / np.sum(metrics['count'])
 
-    print('Testing Epoch: {:d}/{:d}, Accuracy: {:.3f} \n'.format(epoch, args.epochs, accuracy))
+    print('Testing Epoch: {:d}/{:d}, Accuracy: {:.8f} \n'.format(epoch, args.epochs, accuracy))
 
     return metrics
 
@@ -186,12 +202,10 @@ if __name__ == '__main__':
 
     metrics_test = test(epoch)
 
-    loss_train = np.mean(metrics_train['loss'])
     acc_test = 100 * np.sum(metrics_test['correct']) / np.sum(metrics_test['count'])
 
     time_now = datetime.now().strftime('%H:%M:%S')
 
     with open(save_log_name, 'a') as f:
-        f.write('Epoch {:02d}: Accuracy: {:.3f}, Loss: {:.3f}, Time: {:s}\n'.format(
-            epoch, acc_test, loss_train, time_now))
-    f.close()
+        f.write('Epoch {:02d}: Accuracy: {:.3f}, Time: {:s}\n'.format(
+            epoch, acc_test, time_now))

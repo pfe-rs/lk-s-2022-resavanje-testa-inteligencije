@@ -103,13 +103,12 @@ class DeepLinearLayerF(nn.Module):
         self.mlp = nn.Sequential(
             LinearBn(512, 256),
             LinearBn(256, 256),
-            nn.Dropout(0.5),
+            #.Dropout(0.5),
             nn.Linear(256, 1)
         )
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.mlp(x)
         return x
-
 
 
 class Wild_Relation_Network(nn.Module):
@@ -148,7 +147,7 @@ class Wild_Relation_Network(nn.Module):
 
 class ToTensor(object):
     def __call__(self, sample):
-        return torch.tensor(sample, dtype=torch.float32)
+        return torch.tensor(np.array(sample), dtype=torch.float32)
 
 
 class dataset(Dataset):
