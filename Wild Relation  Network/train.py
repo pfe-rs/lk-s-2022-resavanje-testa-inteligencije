@@ -14,14 +14,13 @@ from torchvision import transforms, utils
 from torch.autograd import Variable
 from WREN import *
 
-<<<<<<< Updated upstream
 dataset_path = 'D:\\testiranje lmao\\testovi'
 save_path_model = 'D:\\testiranje lmao\`cuva'
 save_path_log = 'D:\\testiranje lmao\cuvalogs'
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-=======
+
 dataset_path = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\neutral'#lokacija dataseta
 #Dataset je podeljen u 3 foldera: train, test i val koji predstavljaju lokaciju train, test i validation seta.
 save_path_model = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren\\wild-relation-network-main\\wrenLib\\cuva'#lokacija cuvanja modela
@@ -29,7 +28,6 @@ save_path_log = 'C:\\Users\\danil\\PycharmProjects\\PFE_Test_Inteligencije\\wren
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
 torch.backends.cudnn.benchmark = True #optimizacija cuda algoritma
->>>>>>> Stashed changes
 
 num_neg = 4
 fig_type = "*" #oznaka da se uzimaju svi fajlovi u folderu
@@ -84,13 +82,12 @@ train_log_name = os.path.join(save_path_log, "train_log.txt")#ime train log teks
 with open(save_log_name, 'a') as f:
     f.write('\n------ lr: {:f}, batch_size: {:d}, img_size: {:d}, time: {:s} ------\n'.format(
         learn_rate, batch_size, img_size, time_now))
-<<<<<<< Updated upstream
+
 f.close()
 
 loss_fn = nn.CrossEntropyLoss().to(device)
-=======
+
 f.close()#Zapisivanje lr, batch_size, img_size i vreme u trenutku pokretanja u save log fajl
->>>>>>> Stashed changes
 
 loss_fn = nn.CrossEntropyLoss()#Za loss funkciju koristimo crossEntropyLoss kao u radu
 
